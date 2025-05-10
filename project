@@ -27,3 +27,12 @@ print("Beijing Air Quality Analysis")
 print("This analysis examines air quality data from various monitoring stations in Beijing, China.")
 print("The dataset covers the period from March 1st, 2013 to February 28th, 2017.")
 print("It includes both air pollutants and meteorological conditions.")
+
+# SECTION 2: SET FILE PATH
+# ----------------------
+# Method 1: Direct file path specification
+file_paths = ['your_combined_file.csv']  # Replace with your actual file path
+
+# Method 2: Check current directory and list available files
+print("\nCurrent working directory:", os.getcwd())
+print("Files in current directory:", os.listdir())
