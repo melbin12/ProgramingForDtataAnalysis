@@ -36,3 +36,70 @@ file_paths = ['your_combined_file.csv']  # Replace with your actual file path
 # Method 2: Check current directory and list available files
 print("\nCurrent working directory:", os.getcwd())
 print("Files in current directory:", os.listdir())
+
+# SECTION 3: DATA LOADING
+# ---------------------
+# Function to generate sample data (if needed)
+def generate_sample_data():
+    """Generate sample data for demonstration when no files are provided"""
+    # Create sample stations
+    stations = ['Gucheng', 'Wanshouxigong', 'Tiantan', 'Shunyi']
+    
+    # Generate dates
+    date_range = pd.date_range(start='2013-03-01', end='2017-02-28', freq='H')
+    
+    data = []
+    for station in stations:
+        # Create a dataframe for this station
+        station_df = pd.DataFrame({
+            'year': date_range.year,
+            'month': date_range.month,
+            'day': date_range.day,
+            'hour': date_range.hour,
+            'PM2.5': np.random.normal(80, 30, len(date_range)),
+            'PM10': np.random.normal(100, 40, len(date_range)),
+            'SO2': np.random.normal(15, 5, len(date_range)),
+            'NO2': np.random.normal(40, 15, len(date_range)),
+            'CO': np.random.normal(1.5, 0.5, len(date_range)),
+            'O3': np.random.normal(50, 20, len(date_range)),
+            'TEMP': np.random.normal(15, 10, len(date_range)),
+            'PRES': np.random.normal(1015, 5, len(date_range)),
+            'DEWP': np.random.normal(8, 7, len(date_range)),
+            'RAIN': np.random.exponential(0.1, len(date_range)),
+            'wd': np.random.choice(['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'], len(date_range)),
+            'WSPM': np.random.normal(2, 1, len(date_range)),
+            'station': station
+        })
+        data.append(station_df)
+    
+    combined_df = pd.concat(data, ignore_index=True)
+    return combined_df
+
+# Function to load data from CSV files
+def load_data(file_paths=None):
+    if file_paths and isinstance(file_paths, list) and len(file_paths) > 0:
+        dfs = []
+        for file_path in file_paths:
+            try:
+                print(f"Attempting to load file: {file_path}")
+                df = pd.read_csv(file_path)
+                print(f"Successfully loaded {file_path} with {df.shape[0]} rows and {df.shape[1]} columns")
+                dfs.append(df)
+            except Exception as e:
+                print(f"Error loading {file_path}: {e}")
+        
+        if dfs:
+            combined_df = pd.concat(dfs, ignore_index=True)
+            return combined_df
+    
+    # Generate sample data if no valid files provided
+    print("No valid data files provided. Using sample data instead.")
+    return generate_sample_data()
+
+# Load the data
+df = load_data(file_paths)
+
+# Check if the file loaded properly
+print(f"\nData loaded successfully with {df.shape[0]} rows and {df.shape[1]} columns")
+print("First few rows:")
+display(df.head())
