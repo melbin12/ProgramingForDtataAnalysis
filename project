@@ -103,3 +103,57 @@ df = load_data(file_paths)
 print(f"\nData loaded successfully with {df.shape[0]} rows and {df.shape[1]} columns")
 print("First few rows:")
 display(df.head())
+# SECTION 4: DATA PREPROCESSING
+# ---------------------------
+def preprocess_data(df):
+    # Make a copy of the dataframe
+    processed_df = df.copy()
+    
+    # Print initial missing values
+    print("\nMissing values before preprocessing:")
+    print(processed_df.isnull().sum())
+    
+    # Handle missing values
+    # For numerical columns, fill with median
+    numerical_cols = processed_df.select_dtypes(include=['float64', 'int64']).columns
+    for col in numerical_cols:
+        processed_df[col] = processed_df[col].fillna(processed_df[col].median())
+    
+    # For categorical columns, fill with mode
+    categorical_cols = processed_df.select_dtypes(include=['object']).columns
+    for col in categorical_cols:
+        if processed_df[col].isnull().any():
+            processed_df[col] = processed_df[col].fillna(processed_df[col].mode()[0])
+    
+    # Create datetime column if year, month, day, hour columns exist
+    if all(col in processed_df.columns for col in ['year', 'month', 'day', 'hour']):
+        processed_df['datetime'] = pd.to_datetime(processed_df[['year', 'month', 'day', 'hour']])
+    else:
+        print("Warning: Could not create datetime column. Missing required columns.")
+    
+    # Feature engineering - add season if month column exists
+    if 'month' in processed_df.columns:
+        processed_df['season'] = processed_df['month'].apply(
+            lambda x: 'Winter' if x in [12, 1, 2] else
+                    'Spring' if x in [3, 4, 5] else
+                    'Summer' if x in [6, 7, 8] else 'Autumn'
+        )
+    
+    # Convert wind direction to categorical if wd column exists
+    if 'wd' in processed_df.columns:
+        processed_df['wd'] = processed_df['wd'].astype('category')
+    
+    # Remove duplicates
+    initial_rows = processed_df.shape[0]
+    processed_df = processed_df.drop_duplicates()
+    final_rows = processed_df.shape[0]
+    if initial_rows > final_rows:
+        print(f"Removed {initial_rows - final_rows} duplicate rows")
+    
+    # Check if we have the expected columns
+    expected_cols = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3', 'TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM']
+    missing_cols = [col for col in expected_cols if col not in processed_df.columns]
+    if missing_cols:
+        print(f"Warning: Missing expected columns: {missing_cols}")
+    
+    return processed_df
