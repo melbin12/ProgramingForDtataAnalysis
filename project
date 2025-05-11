@@ -1,159 +1,102 @@
-
-# SECTION 1: IMPORT LIBRARIES
-# -------------------------
+%%writefile app.py
+import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
-import plotly.express as px
-import plotly.graph_objects as go
-import os
 
-# Enable plotly in Jupyter notebook
-from plotly.offline import init_notebook_mode, iplot
-init_notebook_mode(connected=True)
+# Load dataset
+df = pd.read_csv("merged_beijing_data.csv")
 
-# Set matplotlib style
-plt.style.use('ggplot')
-plt.rcParams['figure.figsize'] = (12, 8)
+# Set Streamlit page config
+st.set_page_config(page_title="Air Quality Dashboard – CMP7005", page_icon="🌫️", layout="wide")
 
-# Print introduction
-print("Beijing Air Quality Analysis")
-print("This analysis examines air quality data from various monitoring stations in Beijing, China.")
-print("The dataset covers the period from March 1st, 2013 to February 28th, 2017.")
-print("It includes both air pollutants and meteorological conditions.")
+# Set style
+st.markdown("""
+    <style>
+    .main { background-color: #f9fbfd; }
+    .reportview-container { background: #f9fbfd; }
+    .stSidebar { background-color: #f0f2f6; }
+    </style>
+""", unsafe_allow_html=True)
 
-# SECTION 2: SET FILE PATH
-# ----------------------
-# Method 1: Direct file path specification
-file_paths = ['your_combined_file.csv']  # Replace with your actual file path
+# Add header
+st.title("🌫️ CMP7005 Air Quality Analysis Dashboard")
+st.markdown("Explore, analyse, and model air pollution data using a user-friendly multipage app.")
 
-# Method 2: Check current directory and list available files
-print("\nCurrent working directory:", os.getcwd())
-print("Files in current directory:", os.listdir())
+# Sidebar
+st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/4/45/Beijing_Smog_2014.jpg", use_column_width=True)
+st.sidebar.title("🔍 Navigation")
+selection = st.sidebar.radio("Go to Section", ["📊 Data Overview", "📈 EDA", "🤖 Modelling"])
 
-# SECTION 3: DATA LOADING
-# ---------------------
-# Function to generate sample data (if needed)
-def generate_sample_data():
-    """Generate sample data for demonstration when no files are provided"""
-    # Create sample stations
-    stations = ['Gucheng', 'Wanshouxigong', 'Tiantan', 'Shunyi']
-    
-    # Generate dates
-    date_range = pd.date_range(start='2013-03-01', end='2017-02-28', freq='H')
-    
-    data = []
-    for station in stations:
-        # Create a dataframe for this station
-        station_df = pd.DataFrame({
-            'year': date_range.year,
-            'month': date_range.month,
-            'day': date_range.day,
-            'hour': date_range.hour,
-            'PM2.5': np.random.normal(80, 30, len(date_range)),
-            'PM10': np.random.normal(100, 40, len(date_range)),
-            'SO2': np.random.normal(15, 5, len(date_range)),
-            'NO2': np.random.normal(40, 15, len(date_range)),
-            'CO': np.random.normal(1.5, 0.5, len(date_range)),
-            'O3': np.random.normal(50, 20, len(date_range)),
-            'TEMP': np.random.normal(15, 10, len(date_range)),
-            'PRES': np.random.normal(1015, 5, len(date_range)),
-            'DEWP': np.random.normal(8, 7, len(date_range)),
-            'RAIN': np.random.exponential(0.1, len(date_range)),
-            'wd': np.random.choice(['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'], len(date_range)),
-            'WSPM': np.random.normal(2, 1, len(date_range)),
-            'station': station
-        })
-        data.append(station_df)
-    
-    combined_df = pd.concat(data, ignore_index=True)
-    return combined_df
+# --- Page: Data Overview ---
+if selection == "📊 Data Overview":
+    st.subheader("📘 Dataset Preview")
+    st.dataframe(df.head(10), use_container_width=True)
 
-# Function to load data from CSV files
-def load_data(file_paths=None):
-    if file_paths and isinstance(file_paths, list) and len(file_paths) > 0:
-        dfs = []
-        for file_path in file_paths:
-            try:
-                print(f"Attempting to load file: {file_path}")
-                df = pd.read_csv(file_path)
-                print(f"Successfully loaded {file_path} with {df.shape[0]} rows and {df.shape[1]} columns")
-                dfs.append(df)
-            except Exception as e:
-                print(f"Error loading {file_path}: {e}")
-        
-        if dfs:
-            combined_df = pd.concat(dfs, ignore_index=True)
-            return combined_df
-    
-    # Generate sample data if no valid files provided
-    print("No valid data files provided. Using sample data instead.")
-    return generate_sample_data()
+    st.markdown("### 📐 Data Shape")
+    st.success(f"Rows: {df.shape[0]} | Columns: {df.shape[1]}")
 
-# Load the data
-df = load_data(file_paths)
+    st.markdown("### ❗ Missing Values")
+    nulls = df.isnull().sum()
+    st.dataframe(nulls[nulls > 0])
 
-# Check if the file loaded properly
-print(f"\nData loaded successfully with {df.shape[0]} rows and {df.shape[1]} columns")
-print("First few rows:")
-display(df.head())
-# SECTION 4: DATA PREPROCESSING
-# ---------------------------
-def preprocess_data(df):
-    # Make a copy of the dataframe
-    processed_df = df.copy()
-    
-    # Print initial missing values
-    print("\nMissing values before preprocessing:")
-    print(processed_df.isnull().sum())
-    
-    # Handle missing values
-    # For numerical columns, fill with median
-    numerical_cols = processed_df.select_dtypes(include=['float64', 'int64']).columns
-    for col in numerical_cols:
-        processed_df[col] = processed_df[col].fillna(processed_df[col].median())
-    
-    # For categorical columns, fill with mode
-    categorical_cols = processed_df.select_dtypes(include=['object']).columns
-    for col in categorical_cols:
-        if processed_df[col].isnull().any():
-            processed_df[col] = processed_df[col].fillna(processed_df[col].mode()[0])
-    
-    # Create datetime column if year, month, day, hour columns exist
-    if all(col in processed_df.columns for col in ['year', 'month', 'day', 'hour']):
-        processed_df['datetime'] = pd.to_datetime(processed_df[['year', 'month', 'day', 'hour']])
-    else:
-        print("Warning: Could not create datetime column. Missing required columns.")
-    
-    # Feature engineering - add season if month column exists
-    if 'month' in processed_df.columns:
-        processed_df['season'] = processed_df['month'].apply(
-            lambda x: 'Winter' if x in [12, 1, 2] else
-                    'Spring' if x in [3, 4, 5] else
-                    'Summer' if x in [6, 7, 8] else 'Autumn'
-        )
-    
-    # Convert wind direction to categorical if wd column exists
-    if 'wd' in processed_df.columns:
-        processed_df['wd'] = processed_df['wd'].astype('category')
-    
-    # Remove duplicates
-    initial_rows = processed_df.shape[0]
-    processed_df = processed_df.drop_duplicates()
-    final_rows = processed_df.shape[0]
-    if initial_rows > final_rows:
-        print(f"Removed {initial_rows - final_rows} duplicate rows")
-    
-    # Check if we have the expected columns
-    expected_cols = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3', 'TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM']
-    missing_cols = [col for col in expected_cols if col not in processed_df.columns]
-    if missing_cols:
-        print(f"Warning: Missing expected columns: {missing_cols}")
-    
-    return processed_df
+    st.markdown("### 📊 Statistical Summary")
+    st.dataframe(df.describe(), use_container_width=True)
+
+# --- Page: EDA ---
+elif selection == "📈 EDA":
+    st.subheader("📈 Exploratory Data Analysis")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### 🟢 PM2.5 Distribution")
+        fig1, ax1 = plt.subplots()
+        sns.histplot(df['PM2.5'], bins=50, color="skyblue", ax=ax1)
+        ax1.set_xlabel("PM2.5 (µg/m³)")
+        st.pyplot(fig1)
+
+    with col2:
+        st.markdown("#### 🔵 PM2.5 vs PM10")
+        fig2, ax2 = plt.subplots()
+        sns.scatterplot(x='PM10', y='PM2.5', data=df, alpha=0.3, color='orange', ax=ax2)
+        ax2.set_title("Scatter: PM10 vs PM2.5")
+        st.pyplot(fig2)
+
+    st.markdown("#### 🔴 Correlation Heatmap")
+    corr = df[['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3', 'TEMP', 'PRES', 'DEWP', 'WSPM']].corr()
+    fig3, ax3 = plt.subplots(figsize=(10, 6))
+    sns.heatmap(corr, annot=True, cmap='coolwarm', linewidths=0.5, ax=ax3)
+    st.pyplot(fig3)
+
+# --- Page: Modelling ---
+elif selection == "🤖 Modelling":
+    st.subheader("🤖 PM2.5 Prediction Using Linear Regression")
+
+    features = ['PM10', 'SO2', 'NO2', 'CO', 'O3', 'TEMP', 'PRES', 'DEWP', 'WSPM']
+    df = df.dropna(subset=['PM2.5'])
+
+    X = df[features]
+    y = df['PM2.5']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    col1, col2 = st.columns(2)
+    col1.metric("Mean Squared Error", f"{mse:.2f}")
+    col2.metric("R² Score", f"{r2:.2f}")
+
+    st.markdown("#### 📉 Predicted vs Actual PM2.5")
+    fig4, ax4 = plt.subplots()
+    sns.scatterplot(x=y_test, y=y_pred, alpha=0.3, color='green', ax=ax4)
+    ax4.set_xlabel("Actual PM2.5")
+    ax4.set_ylabel("Predicted PM2.5")
+    ax4.set_title("Prediction Results")
+    st.pyplot(fig4)
