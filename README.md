@@ -1,4 +1,58 @@
-Air pollution has become one of the most significant environmental and public health challenges of the 21st century. As urbanisation and industrialisation intensify, particularly in megacities like Beijing, the adverse effects of polluted air on human health and ecosystems continue to escalate. Exposure to airborne pollutants such as particulate matter (PM2.5 and PM10), sulphur dioxide (SO₂), nitrogen dioxide (NO₂), carbon monoxide (CO), and ozone (O₃) is directly associated with increased risks of respiratory illnesses, cardiovascular diseases, and premature mortality (Brauer et al., 2021). To mitigate these health threats and support informed decision-making, there is an increasing need for data-driven systems that can analyse, interpret, and visualise air quality trends efficiently.
-This project addresses the problem by developing an end-to-end data analysis and application development pipeline using Python and associated libraries. The selected dataset comprises hourly air quality measurements from twelve monitoring stations in Beijing between 2013 and 2017. This dataset, obtained from the UCI Machine Learning Repository, includes both pollutant concentrations and meteorological data such as wind speed, temperature, pressure, dew point, and rainfall, allowing for comprehensive multi-variable analysis (Li et al., 2024).
-The overall aim of this assignment is to process, analyse, and visualise the dataset through a multipage application with a graphical user interface (GUI) that facilitates user interaction. The assignment tasks involve: (1) importing and merging data from selected stations, (2) conducting exploratory data analysis (EDA), (3) developing a machine learning model to predict PM2.5 levels, (4) creating a Streamlit-based GUI, and (5) maintaining version control through GitHub. These components reflect the broader application of programming for real-world environmental data analysis.
-This work not only enhances digital and analytical competencies but also aligns with sustainability goals by empowering users to interpret pollution trends and act based on data-driven insights (Lim et al., 2020).
+# 🌫️ PM2.5 Air Quality Prediction App
+
+This is an interactive Streamlit web application that allows users to explore Beijing's air quality data (2013–2017), perform detailed Exploratory Data Analysis (EDA), and predict PM2.5 pollutant levels using a machine learning model.
+
+---
+
+## 🚀 Features
+
+### 📄 Overview Page
+- Displays a snapshot of the dataset.
+- Shows the shape of the data.
+- Highlights missing values with a bar chart.
+
+### 📊 EDA (Exploratory Data Analysis)
+- PM2.5 distribution with histogram and KDE.
+- Correlation heatmap between pollutants and weather features.
+- Monthly trend of PM2.5.
+- Dynamic pollutant trend visualizations.
+- Boxplot for outlier detection.
+
+### 📈 Prediction Page
+- Use sliders to simulate environmental conditions.
+- Predict PM2.5 levels using a trained Random Forest Regressor.
+- Features include PM10, SO2, NO2, CO, O3, temperature, pressure, dew point, and wind speed.
+
+---
+
+## 🧠 Technologies Used
+
+- **Frontend**: [Streamlit](https://streamlit.io/)
+- **Data Analysis**: pandas, matplotlib, seaborn
+- **Machine Learning**: scikit-learn (RandomForestRegressor)
+- **Styling**: Custom CSS for dark theme and responsive design
+- **Menu Navigation**: `streamlit-option-menu` plugin
+
+---
+
+## 🗂️ Project Structure
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+
+Run the app:
+
+streamlit run app.py
+
+📦 Requirements
+Make sure to include the following packages in your requirements.txt:
+streamlit
+pandas
+matplotlib
+seaborn
+scikit-learn
+streamlit-option-menu
+
+****
